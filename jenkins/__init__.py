@@ -81,6 +81,7 @@ BUILD_CONSOLE_OUTPUT = 'job/%(name)s/%(number)d/consoleText'
 
 CREATE_NODE = 'computer/doCreateItem?%s'
 DELETE_NODE = 'computer/%(name)s/doDelete'
+LIST_NODE = 'computer/api/json'
 NODE_INFO = 'computer/%(name)s/api/json?depth=%(depth)s'
 NODE_TYPE = 'hudson.slaves.DumbSlave$DescriptorImpl'
 TOGGLE_OFFLINE = 'computer/%(name)s/toggleOffline?offlineMessage=%(msg)s'
@@ -617,6 +618,21 @@ class Jenkins(object):
         except ValueError:
             raise JenkinsException("Could not parse JSON info for node[%s]"
                                    % name)
+
+    def get_nodes(self):
+        '''Get node list.'''
+        try:
+            response = self.jenkins_open(Request(
+                self.server + LIST_NODE))
+            if response:
+                return json.loads(response)
+            else:
+                raise JenkinsException('Could not fetch nodes list')
+        except HTTPError:
+            raise JenkinsException("Error communicating with server[%s]"
+                                   % self.server)
+        except ValueError:
+            raise JenkinsException("Could not parse JSON info for nodes list")
 
     def node_exists(self, name):
         '''Check whether a node exists
